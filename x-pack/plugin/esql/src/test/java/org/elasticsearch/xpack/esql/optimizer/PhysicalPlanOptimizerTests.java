@@ -183,6 +183,7 @@ import static org.elasticsearch.xpack.esql.core.type.DataType.GEO_SHAPE;
 import static org.elasticsearch.xpack.esql.core.util.TestUtils.stripThrough;
 import static org.elasticsearch.xpack.esql.parser.ExpressionBuilder.MAX_EXPRESSION_DEPTH;
 import static org.elasticsearch.xpack.esql.parser.LogicalPlanBuilder.MAX_QUERY_DEPTH;
+import static org.elasticsearch.xpack.esql.planner.mapper.MapperUtils.hasScoreAttribute;
 import static org.hamcrest.Matchers.closeTo;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -7728,7 +7729,7 @@ public class PhysicalPlanOptimizerTests extends ESTestCase {
         EsRelation esRelation = as(filter.child(), EsRelation.class);
         assertTrue(esRelation.optimized());
         assertTrue(esRelation.resolved());
-        assertTrue(esRelation.output().stream().anyMatch(a -> a.name().equals(MetadataAttribute.SCORE) && a instanceof MetadataAttribute));
+        assertTrue(hasScoreAttribute(esRelation.output()));
     }
 
     public void testScoreTopN() {
@@ -7750,7 +7751,7 @@ public class PhysicalPlanOptimizerTests extends ESTestCase {
         Order scoreOrer = order.getFirst();
         assertEquals(Order.OrderDirection.DESC, scoreOrer.direction());
         Expression child = scoreOrer.child();
-        assertTrue(child instanceof MetadataAttribute ma && ma.name().equals(MetadataAttribute.SCORE));
+        assertTrue(MetadataAttribute.isScoreAttribute(child));
         Filter filter = as(topN.child(), Filter.class);
 
         Match match = as(filter.condition(), Match.class);
@@ -7760,7 +7761,7 @@ public class PhysicalPlanOptimizerTests extends ESTestCase {
         EsRelation esRelation = as(filter.child(), EsRelation.class);
         assertTrue(esRelation.optimized());
         assertTrue(esRelation.resolved());
-        assertTrue(esRelation.output().stream().anyMatch(a -> a.name().equals(MetadataAttribute.SCORE) && a instanceof MetadataAttribute));
+        assertTrue(hasScoreAttribute(esRelation.output()));
     }
 
     public void testReductionPlanForTopN() {
