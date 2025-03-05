@@ -217,6 +217,7 @@ public class TransportVersions {
     public static final TransportVersion SEMANTIC_TEXT_CHUNKING_CONFIG = def(9_047_00_0);
     public static final TransportVersion REPO_ANALYSIS_COPY_BLOB = def(9_048_00_0);
     public static final TransportVersion AMAZON_BEDROCK_TASK_SETTINGS = def(9_049_00_0);
+    public static final TransportVersion RANDOM_SAMPLER_QUERY_BUILDER = def(9_050_0_00);
 
     /*
      * STOP! READ THIS FIRST! No, really,
