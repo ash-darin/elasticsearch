@@ -157,7 +157,7 @@ STATS
 WHERE
 DEV_INLINESTATS
 DEV_RERANK
-DEV_RANDOM_SAMPLE
+DEV_SAMPLE
 FROM
 DEV_TIME_SERIES
 DEV_FORK
@@ -338,7 +338,7 @@ forkSubQueryCommand
 forkSubQueryProcessingCommand
 rrfCommand
 rerankCommand
-randomSampleCommand
+sampleCommand
 booleanExpression
 regexBooleanExpression
 matchBooleanExpression

@@ -63,7 +63,7 @@ processingCommand
     | {this.isDevVersion()}? forkCommand
     | {this.isDevVersion()}? rerankCommand
     | {this.isDevVersion()}? rrfCommand
-    | {this.isDevVersion()}? randomSampleCommand
+    | {this.isDevVersion()}? sampleCommand
     ;
 
 whereCommand
@@ -298,6 +298,6 @@ rerankCommand
     : DEV_RERANK queryText=constant ON fields WITH inferenceId=identifierOrParameter
     ;
 
-randomSampleCommand
-    : DEV_RANDOM_SAMPLE probability=decimalValue seed=integerValue?
+sampleCommand
+    : DEV_SAMPLE probability=decimalValue seed=integerValue?
     ;

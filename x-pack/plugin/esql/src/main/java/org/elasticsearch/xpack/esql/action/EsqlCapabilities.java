@@ -972,10 +972,10 @@ public class EsqlCapabilities {
         FORK_V2(Build.current().isSnapshot()),
 
         /**
-         * Support for the RANDOM_SAMPLE command
+         * Support for the SAMPLE command
          */
-        RANDOM_SAMPLE(Build.current().isSnapshot());
->
+        SAMPLE(Build.current().isSnapshot());
+
         private final boolean enabled;
 
         Cap() {
