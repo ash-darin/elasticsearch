@@ -62,6 +62,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.LongSupplier;
 import java.util.stream.Collectors;
@@ -98,6 +99,7 @@ public class IndexLifecycleService
     private final ExecutorService managementExecutor;
     /** A reference to the last seen cluster state. If it's not null, we're currently processing a cluster state. */
     private final AtomicReference<ClusterState> lastSeenState = new AtomicReference<>();
+    private final AtomicBoolean didProcessClusterStateSinceLastPeriodicRun = new AtomicBoolean();
 
     private SchedulerEngine.Job scheduledJob;
 
@@ -354,6 +356,7 @@ public class IndexLifecycleService
             // This means that when ILM's cluster state processing takes longer than the overall cluster state application or when
             // the forked thread is waiting in the thread pool queue (e.g. when the master node is swamped), we might skip some
             // cluster state updates. Since ILM does not depend on "deltas" in cluster states, we can skip some cluster states just fine.
+            didProcessClusterStateSinceLastPeriodicRun.set(true);
             if (lastSeenState.getAndSet(event.state()) == null) {
                 processClusterState();
             } else {
@@ -445,9 +448,25 @@ public class IndexLifecycleService
 
     @Override
     public void triggered(SchedulerEngine.Event event) {
-        if (event.jobName().equals(XPackField.INDEX_LIFECYCLE)) {
-            logger.trace("job triggered: {}, {}, {}", event.jobName(), event.scheduledTime(), event.triggeredTime());
-            triggerPolicies(clusterService.state(), false);
+        if (event.jobName().equals(XPackField.INDEX_LIFECYCLE) == false) {
+            assert false : "Expected scheduler event to be for ILM";
+            return;
+        }
+        logger.trace("job triggered: {}, {}, {}", event.jobName(), event.scheduledTime(), event.triggeredTime());
+        triggerPolicies(clusterService.state(), false);
+
+        // Check if we've processed at least one cluster state update since the last periodic run.
+        // If not, we run all policies as if there was just a cluster state update to get them unstuck.
+        if (didProcessClusterStateSinceLastPeriodicRun.getAndSet(false) == false) {
+            // If a new cluster state came in while/after running the above check, `lastSeenState` would have become non-null, meaning
+            // we don't need to trigger the polices - hence the `compareAndSet` instead of a `getAndSet`.
+            if (lastSeenState.compareAndSet(null, clusterService.state())) {
+                logger.info("ILM didn't process a cluster state for [{}]. Running cluster state steps now", pollInterval);
+                processClusterState();
+            } else {
+                logger.trace("ILM didn't process a cluster state for [{}] but one just came in", pollInterval);
+            }
+
         }
     }
 
