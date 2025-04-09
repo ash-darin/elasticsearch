@@ -71,7 +71,11 @@ public abstract class SimpleBatchedExecutor<Task extends ClusterStateTaskListene
                 Tuple<ClusterState, TaskResult> result = executeTask(task, clusterState);
                 clusterState = result.v1();
                 final var taskResult = result.v2();
-                taskContext.success(() -> taskSucceeded(task, taskResult));
+                if (task instanceof ClusterStateAckListener taskAckListener) {
+                    taskContext.success(() -> taskSucceeded(task, taskResult), taskAckListener);
+                } else {
+                    taskContext.success(() -> taskSucceeded(task, taskResult));
+                }
             } catch (Exception e) {
                 taskContext.onFailure(e);
             }
