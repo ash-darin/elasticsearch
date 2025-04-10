@@ -65,7 +65,7 @@ public class WaitForIndexColorStep extends ClusterStateWaitStep {
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), this.color, this.indexNameSupplier);
+        return Objects.hash(super.hashCode(), this.color);
     }
 
     @Override
@@ -78,8 +78,7 @@ public class WaitForIndexColorStep extends ClusterStateWaitStep {
         }
         WaitForIndexColorStep other = (WaitForIndexColorStep) obj;
         return super.equals(obj)
-            && Objects.equals(this.color, other.color)
-            && Objects.equals(this.indexNameSupplier, other.indexNameSupplier);
+            && Objects.equals(this.color, other.color);
     }
 
     @Override
